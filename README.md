@@ -26,36 +26,27 @@ project-chat/
 
 ## Backend Setup (Django)
 1. Navigate to backend folder:
-   bash
    cd backend
 2. Create and activate virtual environment:
-   bash
    python -m venv venv
    source venv/bin/activate
 3. Install packages:
-   bash
    pip install django djangorestframework djangorestframework-simplejwt channels redis
 4. Start Redis (macOS/Homebrew):
-   bash
    brew services start redis
 5. Apply migrations and create superuser:
-   bash
    python manage.py migrate
    python manage.py createsuperuser
 6. Run with Daphne (WebSocket server):
-   bash
    daphne core.asgi:application
 
 ## Frontend Setup (Next.js)
 
 1. Navigate to frontend:
-   bash
    cd frontend
 2. Install packages:
-   bash
    npm install
 3. Run development server:
-   bash
    npm run dev
 
 Access: http://localhost:3000
