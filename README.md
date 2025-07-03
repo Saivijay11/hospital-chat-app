@@ -10,16 +10,19 @@ A secure, full-stack hospital communication platform designed for real-time and 
 * Contact and Medicines pages for patients
 
 ## Project Structure
+
 project-chat/
-├── backend/                - Django + Channels backend
-│   ├──chat/               - WebSocket logic and message models
-│   ├──users/              - Auth, roles, JWT views
-│   ├──core/               - Settings, URLs, ASGI setup
-│   └──manage.py
-├── frontend/               - Next.js frontend (App Router)
-│   ├──app/                - Role-based pages
-│   ├──components/         - Header, Chat, Route protection
-│   └──utils/, hooks/, styles/
+├── backend/                # Django + Channels backend
+│   ├── chat/               # WebSocket logic and message models
+│   ├── users/              # Auth, roles, JWT views
+│   ├── core/               # Settings, URLs, ASGI setup
+│   └── manage.py
+├── frontend/               # Next.js frontend (App Router)
+│   ├── app/                # Role-based pages (doctor/, patient/, admin/)
+│   ├── components/         # Header, Chat UI, Route protection
+│   ├── hooks/              # Auth logic
+│   ├── utils/              # Axios setup, helper functions
+│   └── styles/             # Tailwind & global styles
 
 ## Backend Setup (Django)
 1. Navigate to backend folder:
