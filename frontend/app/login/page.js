@@ -28,7 +28,7 @@ export default function LoginPage() {
 
             localStorage.setItem('access_token', access)
             localStorage.setItem('refresh_token', refresh)
-            console.log('🔐 Response Data:', res.data)
+            console.log('Response Data:', res.data)
             if (res.data?.is_admin === true) {
                 setTimeout(() => router.push('/admin'), 0)
             } else if (res.data?.is_doctor === true) {
@@ -36,7 +36,7 @@ export default function LoginPage() {
             } else if (res.data?.is_patient === true) {
                 setTimeout(() => router.push('/patient'), 0)
             } else {
-                console.log("🚫 Unrecognized role in login response", res.data)
+                console.log("Unrecognized role in login response", res.data)
                 setTimeout(() => router.push('/unauthorized'), 0)
             }
 
