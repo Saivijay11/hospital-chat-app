@@ -27,7 +27,7 @@ A secure, HIPAA-conscious full-stack communication platform enabling real-time a
 - WebSocket Client for real-time messaging
 - TailwindCSS (UI styling)
 
-## 📂 Project Structure
+## Project Structure
 
 ### Backend
 ```
