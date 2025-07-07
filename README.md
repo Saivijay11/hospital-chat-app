@@ -67,11 +67,11 @@ cd hospital-chat-app
 ```bash
 cd backend
 python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate on Windows
+source venv/bin/activate 
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py createsuperuser
-python manage.py runserver
+daphne core.asgi:application  # Start ASGI server for HTTP + WebSocket
 ```
 
 > Redis must be running for WebSocket and async tasks.
