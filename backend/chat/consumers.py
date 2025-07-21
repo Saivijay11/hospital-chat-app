@@ -4,73 +4,88 @@ from channels.db import database_sync_to_async
 from users.models import CustomUser
 from .models import Thread, Message
 
-# This is my main WebSocket consumer for handling chat between users
 class ChatConsumer(AsyncWebsocketConsumer):
+    """
+    Handles WebSocket chat communication between users.
+    """
 
-    # This runs when a user connects to the WebSocket like you can say opening a chat page 
     async def connect(self):
-        # gets the username of the person who we are chatting from the url
+        # Extract target username from URL
         self.target_username = self.scope['url_route']['kwargs']['username']
 
-        # so took help of jwt middleware to store the logged in user in the websocket scope
+        # Get the currently authenticated user from JWT scope
         self.user = self.scope['user']
 
-        # Get or create a chat thread between the two users
+        # Reject unauthenticated users (extra production safety)
+        if not self.user.is_authenticated:
+            await self.close()
+            return
+
+        # Get or create thread (chat room) between self and target user
         self.thread = await self.get_thread(self.user.username, self.target_username)
 
-        # Generate a unique room name using the thread ID
+        # Define room name using thread ID
         self.room_name = f"chat_{self.thread.id}"
 
-        # Add the current socket connection to this room group
+        # Join the channel group (room)
         await self.channel_layer.group_add(
             self.room_name,
             self.channel_name
         )
 
-        # accepts the connection which is req to complete the socket connection or else handshakle
+        # Accept WebSocket connection
         await self.accept()
 
-    # initialized when connection is closed
     async def disconnect(self, close_code):
-        #removes the connection from the group
+        # Leave the group when the socket disconnects
         await self.channel_layer.group_discard(
             self.room_name,
             self.channel_name
         )
 
-    # This runs every time the client sends a message through the socket
     async def receive(self, text_data):
-        # Convert the incoming message into a Python dict
+        """
+        Triggered when the client sends a message over WebSocket.
+        """
         data = json.loads(text_data)
-        message = data['message']
+        raw_message = data.get('message', '').strip()
 
-        # Save the message to the database 
-        msg = await self.save_message(self.user, message)
+        if not raw_message:
+            return  # Skip empty messages
 
-        # Broadcast the message to everyone else in the same room (including self)
+        # Optional: Add prefix or tracking
+        message = f"{raw_message}"
+
+        # Save message to DB
+        msg_obj = await self.save_message(self.user, message)
+
+        # Send message to all connected clients in the room
         await self.channel_layer.group_send(
             self.room_name,
             {
-                'type': 'chat_message',  # Triggers the chat_message handler below
+                'type': 'chat_message',
                 'message': message,
-                'sender': self.user.username,
-                'timestamp': msg.timestamp.strftime("%I:%M:%S %p")  # for formatting
+                'sender': self.user.full_name or self.user.username,
+                'timestamp': msg_obj.timestamp.strftime("%I:%M:%S %p"),
             }
         )
 
-    # This handles incoming messages sent to the group
     async def chat_message(self, event):
-        # Just send the message back to the frontend as JSON
+        """
+        Called when a message is sent to the group.
+        """
         await self.send(text_data=json.dumps(event))
 
-    # this method checks or will create a new thread obj which is chat room bw 2 users
     @database_sync_to_async
-    def get_thread(self, user1, user2):
-        u1 = CustomUser.objects.get(username=user1)
-        u2 = CustomUser.objects.get(username=user2)
+    def get_thread(self, username1, username2):
+        try:
+            u1 = CustomUser.objects.get(username=username1)
+            u2 = CustomUser.objects.get(username=username2)
+        except CustomUser.DoesNotExist:
+            return None  # Optional: handle user not found
+
         return Thread.get_or_create_thread(u1, u2)
 
-    # This creates a new Message entry in the DB for the chat 
     @database_sync_to_async
     def save_message(self, sender, message):
         return Message.objects.create(thread=self.thread, sender=sender, content=message)
